@@ -8,7 +8,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum ops { none, pls, mns, mul, divop, ln, lg, logb2};
+enum ops { none, pls, mns, mul, divop, log};
 
 struct stack {
 	int value;
@@ -191,3 +191,5 @@ int main() {
 	printf("rezultata e: %d", result);
 	return 0;
 }
+
+//tetsvame za pls commit
