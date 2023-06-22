@@ -8,12 +8,17 @@
 #include <stdio.h>
 #include <stdlib.h>
 
-enum ops { none, pls, mns, mul, divop, log};
+enum ops { none, pls, mns, mul, divop, lg, ln, logb2};
 
 struct stack {
 	int value;
 	enum ops op;
 	struct stack *next;
+};
+
+struct valueq {
+	int value;
+	struct valueq *next;
 };
 
 char *skip_whitespaces(char *str) {
@@ -46,7 +51,6 @@ int validate(struct stack *head) {
 }
 
 struct stack *tokenize(char *str) {
-	struct stack *no = NULL;
 	struct stack *head = NULL, *tail = NULL; 
 	char *current = str;
 	while (*current != '\n') {
@@ -92,7 +96,6 @@ struct stack *tokenize(char *str) {
 		if (head == NULL) {
 			head = new;
 			tail = new;
-			//free(no);
 		}
 		else {
 			tail->next = new;
@@ -131,52 +134,64 @@ int logb2s(int a) {
 	return (int)log2(a);
 }
 
-//void destroy(struct stack *head) {
+struct valueq *push(struct valueq *head, int value) {
+	struct valueq *new = malloc(sizeof(new));
+	new->value = value;
+	new->next = head;
+	head = new;
+	return head;
+}
 
-//}
+struct valueq *pop(struct valueq *head) {
+	struct valueq *current = head;
+	head = head->next;
+	free(current);
+	return head;
+}
 
 int calculate(struct stack *head) {
-	int a = 0, b = 0;
-	struct stack *current = head;
-	while ((current->next) != NULL) {
-		a = head->value;
-		current = current->next;
-		if (current->op == none) {
-			b = current->value;
-			//head = head->next;
+	struct stack *valueq = NULL, *current = head;
+	while (current != NULL) {
+		if (current->op == none)
+			valueq = push(valueq, current->value);
+		if (current->op != none) {
+			if (current->op < 4 && valueq->next != NULL) {
+				switch (current->op) {
+				case pls:
+					valueq->value = addition(valueq->value, (valueq->next)->value);
+					break;
+				case mns:
+					valueq->value = substraction(valueq->value, (valueq->next)->value);
+					break;
+				case mul:
+					valueq->value = multiplication(valueq->value, (valueq->next)->value);
+					break;
+				case divop:
+					valueq->value = (int)division(valueq->value, (valueq->next)->value);
+					break;
+				}
+			}
+			else if (current->op > 4 && valueq != NULL) {
+				switch (current->op) {
+				case lg:
+					valueq->value = (int)log10s(valueq->value);
+					break;
+				case ln:
+					valueq->value = (int)loge(valueq->value);
+					break;
+				case logb2:
+					valueq->value = (int)logb2s(valueq->value);
+					break;
+				}
+			}
+		}
+		else {
 			current = current->next;
+			push(valueq, current->value);
 		}
-		switch (current->op) {
-			case 1: 
-				current->value = addition(a, b);
-				break;
-			case 2: 
-				current->value = substraction(a, b);
-				break;
-			case 3: 
-				current->value = multiplication(a, b);
-				break;
-			case 4: 
-				current->value = (int)division(a, b);
-				break;
-			case 5: 
-				current->value = (int)loge(b);
-				break;
-			case 6: 
-				current->value = (int)log10s(b);
-				break;
-			case 7: 
-				current->value = (int)logb2s(b);
-				break;
-		}
-		current->op = none;
-		if (head->next == current)
-			head = head->next;
+		current = current->next;
 	}
-	a = current->value;
-	current = current->next;
-	//destroy 
-	return a;
+	return valueq->value;
 }
 
 int main() {
@@ -191,5 +206,3 @@ int main() {
 	printf("rezultata e: %d", result);
 	return 0;
 }
-
-//tetsvame za pls commit
