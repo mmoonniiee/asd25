@@ -28,28 +28,6 @@ char *skip_whitespaces(char *str) {
 	return current;
 }
 
-int validate(struct stack *head) {
-	int vc = 0, opc = 0;
-	struct stack *current = head;
-	while (current) {
-		if (current->op == none)
-			vc++;
-		if (current->op != none) {
-			opc++;
-		}
-		if (current->next != NULL) {
-			current = current->next;
-			break;
-		}
-	}
-	if (current->op != none)
-		return 1;
-	if ((opc + 1) != vc)
-		return 1;
-	else
-		return 0;
-}
-
 struct stack *tokenize(char *str) {
 	struct stack *head = NULL, *tail = NULL; 
 	char *current = str;
@@ -104,7 +82,32 @@ struct stack *tokenize(char *str) {
 		}
 	}
 	return head;
-};
+}
+
+int validate(struct stack *head) {
+	int vc = 0, opc = 0;
+	struct stack *current = head;
+	while (current) {
+		if (current->op == none)
+			vc++;
+		if (current->op != none) {
+			if (current->op < 4)
+				opc += 2;
+			else
+				opc++;
+		}
+		if (current->next != NULL) {
+			current = current->next;
+			break;
+		}
+	}
+	if (current->op != none)
+		return 1;
+	if (opc != vc)
+		return 1;
+	else
+		return 0;
+}
 
 int addition(int a, int b) {
 	return a + b;
@@ -146,7 +149,7 @@ struct valueq *pop(struct valueq *head) {
 	struct valueq *current = head;
 	head = head->next;
 	free(current);
-	return head;
+	return &head;
 }
 
 int calculate(struct stack *head) {
@@ -158,20 +161,24 @@ int calculate(struct stack *head) {
 			if (current->op < 4 && valueq->next != NULL) {
 				switch (current->op) {
 				case pls:
-					valueq->value = addition(valueq->value, (valueq->next)->value);
+					(valueq->next)->value = addition(valueq->value, (valueq->next)->value);
+					valueq = pop(&valueq);
 					break;
 				case mns:
-					valueq->value = substraction(valueq->value, (valueq->next)->value);
+					(valueq->next)->value = substraction((valueq->next)->value, valueq->value);
+					valueq = pop(&valueq);
 					break;
 				case mul:
 					valueq->value = multiplication(valueq->value, (valueq->next)->value);
+					//valueq = pop(valueq);
 					break;
 				case divop:
-					valueq->value = (int)division(valueq->value, (valueq->next)->value);
+					valueq->value = (int)division((valueq->next)->value, valueq->value);
+					//valueq = pop(valueq);
 					break;
 				}
 			}
-			else if (current->op > 4 && valueq != NULL) {
+			else if (current->op > 4) {
 				switch (current->op) {
 				case lg:
 					valueq->value = (int)log10s(valueq->value);
@@ -187,7 +194,7 @@ int calculate(struct stack *head) {
 		}
 		else {
 			current = current->next;
-			push(valueq, current->value);
+			valueq = push(valueq, current->value);
 		}
 		current = current->next;
 	}
@@ -198,9 +205,9 @@ int main() {
 	int result;
 	char str[255];
 	printf("vyvedete izraz: ");
-	fgets(str, sizeof(str), stdin); 
+	fgets(str, sizeof(str), stdin);
 	struct stack *izraz = tokenize(str);
-	if (validate(izraz)) 
+	if (validate(izraz))
 		printf("nevaliden izraz \n");
 	result = calculate(izraz);
 	printf("rezultata e: %d", result);

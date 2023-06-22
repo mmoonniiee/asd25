@@ -18,5 +18,8 @@
     <ClCompile Include="ppraktika.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="dancho.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>
