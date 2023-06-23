@@ -138,7 +138,7 @@ int logb2s(int a) {
 }
 
 struct valueq *push(struct valueq *head, int value) {
-	struct valueq *new = malloc(sizeof(new));
+	struct valueq *new = malloc(sizeof(*new));
 	new->value = value;
 	new->next = head;
 	head = new;
@@ -149,7 +149,7 @@ struct valueq *pop(struct valueq *head) {
 	struct valueq *current = head;
 	head = head->next;
 	free(current);
-	return &head;
+	return head;
 }
 
 int calculate(struct stack *head) {
@@ -157,24 +157,24 @@ int calculate(struct stack *head) {
 	while (current != NULL) {
 		if (current->op == none)
 			valueq = push(valueq, current->value);
-		if (current->op != none) {
+		else {
 			if (current->op < 4 && valueq->next != NULL) {
 				switch (current->op) {
 				case pls:
 					(valueq->next)->value = addition(valueq->value, (valueq->next)->value);
-					valueq = pop(&valueq);
+					valueq = pop(valueq);
 					break;
 				case mns:
 					(valueq->next)->value = substraction((valueq->next)->value, valueq->value);
-					valueq = pop(&valueq);
+					valueq = pop(valueq);
 					break;
 				case mul:
-					valueq->value = multiplication(valueq->value, (valueq->next)->value);
-					//valueq = pop(valueq);
+					(valueq->next)->value = multiplication(valueq->value, (valueq->next)->value);
+					valueq = pop(valueq);
 					break;
 				case divop:
-					valueq->value = (int)division((valueq->next)->value, valueq->value);
-					//valueq = pop(valueq);
+					(valueq->next)->value = (int)division((valueq->next)->value, valueq->value);
+					valueq = pop(valueq);
 					break;
 				}
 			}
@@ -192,7 +192,7 @@ int calculate(struct stack *head) {
 				}
 			}
 		}
-		else {
+		if(current->next && current->next->op == none) {
 			current = current->next;
 			valueq = push(valueq, current->value);
 		}
